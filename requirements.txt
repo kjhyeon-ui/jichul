@@ -1,0 +1,5 @@
+anthropic>=0.40
+pydantic>=2.5
+python-docx>=1.1
+pyyaml>=6.0
+pytest>=8.0   # 테스트용
