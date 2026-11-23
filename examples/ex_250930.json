@@ -1,0 +1,253 @@
+{
+ "_comment": "샘플 250930_희망간병대표자_회의_지출결의서.pdf 를 재구성. 이름·계좌는 가명/가짜. few-shot 예시.",
+ "fewshot": true,
+ "meta": {
+  "project_title": "의료연대본부 희망간병분회 대표자회의",
+  "event_date": "2025-09-30",
+  "event_type": "간병대표자회의",
+  "drafter": "기안자A",
+  "draft_date": "2025-10-13",
+  "attendees": {
+   "서울대간병": [
+    "참석01"
+   ],
+   "경대간병": [
+    "참석02"
+   ],
+   "동산간병": [
+    "참석03"
+   ],
+   "강원간병": [
+    "참석04"
+   ],
+   "충북간병": [
+    "참석05",
+    "참석06",
+    "참석07"
+   ],
+   "연구원": [
+    "참석08(연구원장)",
+    "참석09(사무국장)",
+    "참석10(희망간병 담당)"
+   ],
+   "본부": [
+    "참석11",
+    "기안자A"
+   ]
+  },
+  "payees": {
+   "daegu": {
+    "label": "대구지부",
+    "bank": "IM뱅크(대구은행)",
+    "account": "000-00-000000-0"
+   },
+   "chungbuk": {
+    "label": "충북 참석05",
+    "bank": "농협",
+    "account": "000-0000-0000"
+   },
+   "gangwon": {
+    "label": "강원 참석04",
+    "bank": "신한",
+    "account": "000-000-000000"
+   },
+   "drafter": {
+    "label": "기안자A",
+    "bank": "국민",
+    "account": "000-00-0000000"
+   }
+  }
+ },
+ "receipts": [
+  {
+   "id": "r1",
+   "source_file": "KTX_서대구-서울_1.png",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": "한국철도공사",
+   "kind": "기차",
+   "amount": 42300,
+   "route_or_items": "서대구→서울 09:29 KTX 104 일반실",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r2",
+   "source_file": "KTX_서대구-서울_2.png",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": "한국철도공사",
+   "kind": "기차",
+   "amount": 29600,
+   "route_or_items": "서대구→서울 09:29 KTX 104 일반실(경로 할인)",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r3",
+   "source_file": "KTX_서울-동대구_1.png",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": "한국철도공사",
+   "kind": "기차",
+   "amount": 43500,
+   "route_or_items": "서울→동대구 17:23 KTX 051 일반실",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r4",
+   "source_file": "KTX_서울-동대구_2.png",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": "한국철도공사",
+   "kind": "기차",
+   "amount": 30400,
+   "route_or_items": "서울→동대구 17:23 KTX 051 일반실(경로 할인)",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r5",
+   "source_file": "충북_승차권_사진.jpg",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": "대명루첸",
+   "kind": "고속·시외버스",
+   "amount": 12800,
+   "route_or_items": "서울남부→청주 17:00 우등",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r6",
+   "source_file": "충북_승차권_앱.jpg",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": null,
+   "kind": "고속·시외버스",
+   "amount": 12800,
+   "route_or_items": "청주시외→서울남부 09:30 우등",
+   "passengers": null,
+   "confidence": "medium",
+   "issue": "앱 승차권 화면에 금액 미표시 — 담당자가 왕복 동일 요금(12,800원)으로 직접 입력한 값"
+  },
+  {
+   "id": "r7",
+   "source_file": "강원_열차승차권_1.jpg",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": null,
+   "kind": "기차",
+   "amount": 8600,
+   "route_or_items": "춘천→청량리 10:23",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r8",
+   "source_file": "강원_열차승차권_2.jpg",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": null,
+   "kind": "기차",
+   "amount": 8600,
+   "route_or_items": "청량리→춘천 18:09",
+   "passengers": null,
+   "confidence": "high",
+   "issue": null
+  },
+  {
+   "id": "r9",
+   "source_file": "식대영수증(샘플에 없음)",
+   "date": "2025-09-30",
+   "time": null,
+   "vendor": null,
+   "kind": "식대",
+   "amount": 139000,
+   "route_or_items": "회의 식사",
+   "passengers": null,
+   "confidence": "low",
+   "issue": "원본 샘플 PDF에 영수증 이미지 없음 — 금액은 샘플 본문 기준"
+  }
+ ],
+ "draft": {
+  "expenses": [
+   {
+    "account_item": "조직사업비",
+    "title": "의료연대본부 희망간병분회 대표자회의",
+    "line_items": [
+     {
+      "label": "대구 교통비",
+      "detail": "KTX 서울↔대구 왕복 2명(경대·동산)",
+      "kind": "transport",
+      "receipt_ids": [
+       "r1",
+       "r2",
+       "r3",
+       "r4"
+      ],
+      "payee_key": "daegu",
+      "claimant_orgs": [
+       "경대간병",
+       "동산간병"
+      ]
+     },
+     {
+      "label": "충북 교통비",
+      "detail": "청주시외↔서울남부 왕복 1명",
+      "kind": "transport",
+      "receipt_ids": [
+       "r5",
+       "r6"
+      ],
+      "payee_key": "chungbuk",
+      "claimant_orgs": [
+       "충북간병"
+      ]
+     },
+     {
+      "label": "강원 교통비",
+      "detail": "춘천↔청량리 왕복 1명",
+      "kind": "transport",
+      "receipt_ids": [
+       "r7",
+       "r8"
+      ],
+      "payee_key": "gangwon",
+      "claimant_orgs": [
+       "강원간병"
+      ]
+     },
+     {
+      "label": "식대",
+      "detail": "회의 식사(총 12명)",
+      "kind": "meal",
+      "receipt_ids": [
+       "r9"
+      ],
+      "payee_key": "drafter"
+     }
+    ],
+    "attachments": [
+     "KTX·버스·열차 승차권",
+     "식대 영수증"
+    ],
+    "reviewer_notes": []
+   }
+  ],
+  "unassigned_receipt_ids": [],
+  "questions": []
+ },
+ "expected": {
+  "total": 327600,
+  "hangul": "금 삼십이만칠천육백원 정",
+  "attendee_count": 12
+ }
+}
