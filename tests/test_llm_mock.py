@@ -37,7 +37,7 @@ def test_extract_file_parses_and_sends_image(tmp_path):
     img = tmp_path / "a.png"
     img.write_bytes(b"\x89PNG\r\n\x1a\n")
     fake = FakeClient([{"receipts": [{"kind": "기차", "amount": 8600, "confidence": "high"}]}])
-    rs = llm.extract_file(fake, img)
+    rs = llm.extract_file(fake, img).receipts
     assert rs[0].amount == 8600
     block = fake.calls[0]["messages"][0]["content"][0]
     assert block["type"] == "image" and block["source"]["media_type"] == "image/png"

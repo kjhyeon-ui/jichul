@@ -2,29 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
-from .compute import parse_date, resolve_all
 from .config import ROOT, load_accounts, load_rules, load_yaml
 from .models import DraftResult, Receipt
-from .render import build_docx
-from .report import write_review
-from .validate import validate
-
-
-def _safe(s: str, n: int = 30) -> str:
-    return re.sub(r"[\\/:*?\"<>|\s]+", "_", s).strip("_")[:n]
-
-
-def _load_examples(d: Path) -> list[dict]:
-    out = []
-    for p in sorted(d.glob("*.json")):
-        ex = json.loads(p.read_text(encoding="utf-8"))
-        if ex.get("fewshot"):
-            out.append(ex)
-    return out
+from .pipeline import emit, fill_meta, load_examples
 
 
 def _load_receipts(p: Path) -> list[Receipt]:
@@ -35,23 +18,13 @@ def _save_receipts(p: Path, rs: list[Receipt]):
     p.write_text(json.dumps([r.model_dump() for r in rs], ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-def _emit(meta, draft: DraftResult, receipts, out_dir: Path, receipts_dir: Path | None, rules, acc) -> int:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    exps = resolve_all(meta, draft, receipts, rules)
-    msgs = validate(meta, exps, draft, receipts, acc, rules)
-    d = parse_date(meta["event_date"])
-    base = f"{d:%y%m%d}_{_safe(meta.get('project_title', '사업'))}"
-    files = []
-    for i, e in enumerate(exps, 1):
-        f = out_dir / f"{base}_{i}_{_safe(e.account_item)}_지출결의서.docx"
-        build_docx(e, f, embed_dir=receipts_dir)
-        files.append(f)
-    rv = write_review(out_dir / f"{base}_검토메모.md", meta, exps, msgs, receipts, draft)
-    (out_dir / f"{base}_draft.json").write_text(draft.model_dump_json(indent=1), encoding="utf-8")
-    for f in files + [rv]:
+def _emit(meta, draft: DraftResult, receipts, out_dir: Path, receipts_dir: Path | None, rules, acc, docs=None) -> int:
+    notes = fill_meta(meta, receipts, docs or []) if "event_date" not in meta else []
+    r = emit(meta, draft, receipts, out_dir, receipts_dir, rules, acc, docs, notes)
+    for f in r.files + [r.review]:
         print("생성:", f)
-    n_err = sum(m.startswith("ERROR") for m in msgs)
-    n_warn = sum(m.startswith("WARN") for m in msgs)
+    n_err = sum(m.startswith("ERROR") for m in r.msgs)
+    n_warn = sum(m.startswith("WARN") for m in r.msgs)
     print(f"검증: 오류 {n_err}건, 경고 {n_warn}건 — 검토메모를 확인하세요")
     return 1 if n_err else 0
 
@@ -100,14 +73,14 @@ def main(argv=None) -> int:
     client = llm.make_client()
 
     if a.cmd == "extract":
-        rs = llm.extract_dir(client, a.receipts_dir, model)
+        rs, docs = llm.extract_dir(client, a.receipts_dir, model, on_file=lambda i, n, f: print(f"[{i}/{n}] {f}"))
         _save_receipts(a.out, rs)
-        print(f"{len(rs)}건 판독 → {a.out}  (금액·날짜를 원본과 대조한 뒤 수정하세요)")
+        print(f"영수증 {len(rs)}건, 기타 증빙 {len(docs)}건 판독 → {a.out}  (금액·날짜를 원본과 대조한 뒤 수정하세요)")
         return 0
 
     meta = load_yaml(a.meta)
     if a.cmd == "draft":
-        draft = llm.draft_expenses(client, meta, _load_receipts(a.receipts), acc, rules, _load_examples(a.examples_dir), model)
+        draft = llm.draft_expenses(client, meta, _load_receipts(a.receipts), acc, rules, load_examples(a.examples_dir), model)
         a.out.write_text(draft.model_dump_json(indent=1), encoding="utf-8")
         print("초안 →", a.out)
         return 0
@@ -117,11 +90,13 @@ def main(argv=None) -> int:
         return _emit(meta, draft, _load_receipts(a.receipts), a.out_dir, a.receipts_dir, rules, acc)
 
     if a.cmd == "run":
-        rs = llm.extract_dir(client, a.receipts_dir, model)
-        a.out_dir.mkdir(parents=True, exist_ok=True)
+        rs, docs = llm.extract_dir(client, a.receipts_dir, model, on_file=lambda i, n, f: print(f"[{i}/{n}] {f}"))
+        for n in fill_meta(meta, rs, docs):
+            print("참고:", n)
+        draft = llm.draft_expenses(client, meta, rs, acc, rules, load_examples(a.examples_dir), model)
+        rc = _emit(meta, draft, rs, a.out_dir, a.receipts_dir, rules, acc, docs)
         _save_receipts(a.out_dir / "receipts.json", rs)
-        draft = llm.draft_expenses(client, meta, rs, acc, rules, _load_examples(a.examples_dir), model)
-        return _emit(meta, draft, rs, a.out_dir, a.receipts_dir, rules, acc)
+        return rc
     return 2
 
 

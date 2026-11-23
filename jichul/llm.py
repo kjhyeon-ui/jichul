@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from .models import DraftResult, ExtractionResult, Receipt, ReceiptRaw
+from .models import DraftResult, ExtractionResult, Receipt, SupportingDoc
 from .prompts import EXTRACT_SYSTEM, draft_system, draft_user
 
 DEFAULT_MODEL = os.environ.get("JICHUL_MODEL", "claude-sonnet-5-5")
@@ -55,23 +55,28 @@ def _tool_input(resp, name: str) -> dict:
     raise RuntimeError(f"모델이 {name} 도구를 호출하지 않았습니다 (stop_reason={getattr(resp, 'stop_reason', '?')})")
 
 
-def extract_file(client, path: Path, model: str = DEFAULT_MODEL) -> list[ReceiptRaw]:
+def extract_file(client, path: Path, model: str = DEFAULT_MODEL) -> ExtractionResult:
     resp = client.messages.create(
         model=model, max_tokens=4096, system=EXTRACT_SYSTEM,
-        tools=[_tool("submit_receipts", "파일에서 판독한 영수증 목록을 제출", ExtractionResult)],
+        tools=[_tool("submit_receipts", "파일에서 판독한 영수증과 그 밖의 증빙을 제출", ExtractionResult)],
         tool_choice={"type": "tool", "name": "submit_receipts"},
-        messages=[{"role": "user", "content": [_file_block(path), {"type": "text", "text": f"파일명: {path.name}\n이 파일의 영수증을 모두 판독하세요."}]}],
+        messages=[{"role": "user", "content": [_file_block(path), {"type": "text", "text": f"파일명: {path.name}\n이 파일의 영수증과 그 밖의 증빙을 모두 판독하세요."}]}],
     )
-    return ExtractionResult(**_tool_input(resp, "submit_receipts")).receipts
+    return ExtractionResult(**_tool_input(resp, "submit_receipts"))
 
 
-def extract_dir(client, folder: Path, model: str = DEFAULT_MODEL) -> list[Receipt]:
-    out: list[Receipt] = []
+def extract_dir(client, folder: Path, model: str = DEFAULT_MODEL, on_file=None) -> tuple[list[Receipt], list[tuple[str, SupportingDoc]]]:
+    receipts: list[Receipt] = []
+    docs: list[tuple[str, SupportingDoc]] = []
     files = sorted(p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in {*MEDIA, ".pdf"})
-    for f in files:
-        for raw in extract_file(client, f, model):
-            out.append(Receipt(id=f"r{len(out) + 1}", source_file=f.name, **raw.model_dump()))
-    return out
+    for i, f in enumerate(files, 1):
+        if on_file:
+            on_file(i, len(files), f.name)
+        res = extract_file(client, f, model)
+        for raw in res.receipts:
+            receipts.append(Receipt(id=f"r{len(receipts) + 1}", source_file=f.name, **raw.model_dump()))
+        docs += [(f.name, d) for d in res.documents]
+    return receipts, docs
 
 
 def draft_expenses(client, meta: dict, receipts: list[Receipt], accounts_cfg: dict, rules: dict,

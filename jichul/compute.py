@@ -37,7 +37,7 @@ def attendees(meta: dict) -> tuple[str, int | None]:
     for org, names in att.items():
         names = list(names or [])
         n += len(names)
-        parts.append(f"{org} {','.join(names)}")
+        parts.append(f"{org} {','.join(names)}".strip())
     return "/".join(parts) + f"/총 {n}명", n
 
 
@@ -76,7 +76,12 @@ def resolve(meta: dict, draft: ExpenseDraft, receipts: dict[str, Receipt], rules
     items: list[ResolvedItem] = []
     files: list[str] = []
 
+    only_payee = next(iter(payees)) if len(payees) == 1 else None
+    defaulted = False
     for li in draft.line_items:
+        if li.payee_key is None and only_payee:
+            li = li.model_copy(update={"payee_key": only_payee})
+            defaulted = True
         amt, notes = 0, []
         for rid in li.receipt_ids:
             r = receipts.get(rid)
@@ -106,6 +111,8 @@ def resolve(meta: dict, draft: ExpenseDraft, receipts: dict[str, Receipt], rules
             calc_note=" | ".join(notes) or None,
         ))
 
+    if defaulted:
+        warnings.append("[참고] 입금처가 1명만 입력되어 입금처가 비어 있던 항목에 그 사람을 지정함 — 맞는지 확인하세요")
     total = sum(i.amount for i in items)
 
     # 입금처: payee_key 별 합계

@@ -212,12 +212,17 @@ def build_docx(exp: ResolvedExpense, out_path: Path, embed_dir: Path | None = No
         _para(doc, "첨부 : 영수증 및 증빙", 12, True, space_after=6)
         for f in exp.attachment_files:
             path = (embed_dir / f) if embed_dir else None
+            embedded = False
             if path and path.exists() and path.suffix.lower() in IMG_EXT:
-                _para(doc, f, 9, space_after=2)
-                doc.add_picture(str(path), width=Cm(12.0))
-                doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.LEFT
-                _para(doc, "", space_after=6)
-            else:
+                try:                                   # 손상된 이미지 한 장 때문에 전체 문서 생성이 실패하지 않도록
+                    _para(doc, f, 9, space_after=2)
+                    doc.add_picture(str(path), width=Cm(12.0))
+                    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    _para(doc, "", space_after=6)
+                    embedded = True
+                except Exception:  # noqa: BLE001
+                    pass
+            if not embedded:
                 _para(doc, f"[수동 첨부 필요] {f}", 10, color=(0xC0, 0, 0), space_after=4)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)

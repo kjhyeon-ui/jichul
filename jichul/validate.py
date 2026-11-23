@@ -53,6 +53,8 @@ def validate(meta: dict, expenses: list[ResolvedExpense], draft: DraftResult,
         if e.total <= 0:
             msgs.append(f"ERROR {tag} 합계가 0원 이하")
         # 4) 입금처
+        for k in sorted({i.payee_key for i in e.items if i.payee_key and i.payee_key not in meta.get("payees", {})}):
+            msgs.append(f"WARN {tag} 입금처 '{k}'가 입력된 입금처 목록에 없어 계좌가 비어 있음")
         if any(i.payee_key is None for i in e.items):
             msgs.append(f"WARN {tag} 입금처가 지정되지 않은 항목이 있음")
         # 5) 청구 기한(지출일 기준 3개월) — 영수증 날짜 기준

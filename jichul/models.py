@@ -25,8 +25,22 @@ class ReceiptRaw(BaseModel):
     issue: Optional[str] = Field(None, description="흐림·잘림·취소/환불·중복 가능성 등 사람이 봐야 할 문제")
 
 
+class AttendeeEntry(BaseModel):
+    org: Optional[str] = Field(None, description="소속(분회/지부). 서류에 적혀 있을 때만")
+    name: str
+
+
+class SupportingDoc(BaseModel):
+    doc_type: Literal["서명부", "회의결과", "사업계획서", "기타"]
+    event_date: Optional[str] = Field(None, description="서류에 명시된 사업/회의 일자 YYYY-MM-DD. 없으면 null")
+    attendees: list[AttendeeEntry] = Field(default_factory=list, description="서명부·회의결과에 또렷이 적힌 참석자만. 글씨가 불분명하면 넣지 말고 issue 에 적기")
+    summary: str = Field(description="한 줄 요약")
+    issue: Optional[str] = None
+
+
 class ExtractionResult(BaseModel):
-    receipts: list[ReceiptRaw] = Field(description="파일 안에서 식별한 영수증 전부(한 파일에 여러 장 가능)")
+    receipts: list[ReceiptRaw] = Field(default_factory=list, description="파일 안에서 식별한 영수증·승차권·결제내역 전부(한 파일에 여러 장 가능)")
+    documents: list[SupportingDoc] = Field(default_factory=list, description="영수증이 아닌 증빙(참석자 서명부, 회의결과, 계획서 등)")
 
 
 class Receipt(ReceiptRaw):
